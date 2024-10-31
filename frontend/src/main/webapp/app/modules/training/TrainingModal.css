@@ -1,0 +1,9 @@
+.modal-body {
+  white-space: nowrap; /* Prevents text from wrapping */
+  overflow-x: auto; /* Enables horizontal scrolling */
+  max-width: 100%; /* Ensures it doesn't exceed modal width */
+}
+
+pre {
+  display: inline-block; /* Keeps each <pre> block inline for horizontal scrolling */
+}

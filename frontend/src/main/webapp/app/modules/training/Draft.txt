@@ -1,0 +1,154 @@
+<div className="row justify-content-center">
+          <div className="col-md-10">
+            <div className="card">
+              <div className="card-header">
+                <h4 className="card-title">Training Data Page</h4>
+              </div>
+
+              {/* Start of Card Body */}
+              <div className="card-body">
+                <CardText>
+                  <Form>
+                    <FormGroup controlId="jobName">
+                      <Row className="form-top-padding">
+                        <Col>
+                          <FormLabel>Job Name</FormLabel>
+                          <FormControl
+                            as="input"
+                            placeholder="Job Name 1"
+                          ></FormControl>
+                        </Col>
+                      </Row>
+                    </FormGroup>
+
+                    <FormGroup controlId="dataSetManagement">
+                      <Row className="form-top-padding">
+                        <Col>
+                          <FormLabel>Data Set</FormLabel>
+                          <FormSelect>
+                            {dataSetOptions.map((option) => (
+                              <option
+                                key={option.dataSetId}
+                                value={option.dataSetId}
+                              >
+                                {option.dataSetDesc}
+                              </option>
+                            ))}
+                          </FormSelect>
+                        </Col>
+                      </Row>
+
+                      <Row className="form-top-padding">
+                        <Col className="mb-2 col-md-3 col-9">
+                          <FormLabel>Testing</FormLabel>
+                          <FormControl
+                            as="input"
+                            placeholder="70%"
+                          ></FormControl>
+                        </Col>
+
+                        <Col className="mb-2 col-md-3 col-9">
+                          <FormLabel>Evaluation</FormLabel>
+                          <FormControl
+                            as="input"
+                            placeholder="20%"
+                          ></FormControl>
+                        </Col>
+
+                        <Col className="mb-2 col-md-3 col-9">
+                          <FormLabel>Training</FormLabel>
+                          <FormControl
+                            as="input"
+                            placeholder="10%"
+                          ></FormControl>
+                        </Col>
+                      </Row>
+                    </FormGroup>
+
+                    <Card>
+                      <CardBody>
+                        <FormGroup controlId="scriptManagement">
+                          <Row>
+                            <h5>Script Management</h5>
+                          </Row>
+
+                          <button type="button" className="btn btn-primary">
+                            Upload .py script
+                          </button>
+
+                          <Row className="form-top-padding">
+                            <Col>
+                              <FormLabel>Uploaded .py script names</FormLabel>
+                              <ul>
+                                <li>testing.py</li>
+                              </ul>
+                            </Col>
+                          </Row>
+                        </FormGroup>
+                      </CardBody>
+                    </Card>
+
+                    <FormGroup controlId="modeldefinitionManagement">
+                      <Row className="form-top-padding">
+                        <Col>
+                          <FormLabel>Model Definition</FormLabel>
+                          <FormSelect>
+                            {modelMethodOptions.map((option) => (
+                              <option
+                                key={option.modelMethodId}
+                                value={option.modelMethodId}
+                              >
+                                {option.modelMethodDesc}
+                              </option>
+                            ))}
+                          </FormSelect>
+                        </Col>
+                      </Row>
+
+                      <Row className="form-top-padding">
+                        <div className="col d-flex justify-content-end">
+                          <button type="button" className="btn btn-primary">
+                            Add Variable
+                          </button>
+                        </div>
+                      </Row>
+
+                      <Row className="form-top-padding">
+                        <Col className="mb-2 col-md-3 col-9">
+                          <FormLabel>Variable A</FormLabel>
+                          <FormControl
+                            as="input"
+                            placeholder="1 to 10"
+                          ></FormControl>
+                        </Col>
+
+                        <Col className="mb-2 col-md-3 col-9">
+                          <FormLabel>Variable B</FormLabel>
+                          <FormControl
+                            as="input"
+                            placeholder="1 to 10"
+                          ></FormControl>
+                        </Col>
+
+                        <Col className="mb-2 col-md-3 col-9">
+                          <FormLabel>Variable C</FormLabel>
+                          <FormControl
+                            as="input"
+                            placeholder="1 to 10"
+                          ></FormControl>
+                        </Col>
+                      </Row>
+                    </FormGroup>
+                  </Form>
+                </CardText>
+
+                <div className="col d-flex justify-content-end">
+                  <button type="button" className="btn btn-primary">
+                    Start Job
+                  </button>
+                </div>
+              </div>
+              {/* End of Card Body */}
+            </div>
+          </div>
+        </div>

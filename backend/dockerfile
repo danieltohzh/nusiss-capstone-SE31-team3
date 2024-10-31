@@ -1,0 +1,52 @@
+# Use the Docker-in-Docker base image
+FROM docker:20-dind
+
+# Install Node.js
+RUN apk add --no-cache nodejs npm
+
+RUN npm set strict-ssl=false
+
+# Install Node.js
+RUN apk add --no-cache nodejs npm
+
+# Install Python and pip
+RUN apk add --no-cache python3 py3-pip
+
+# Install curl
+RUN apk add --no-cache curl
+
+# Create a virtual environment and install AWS CLI and kubectl
+RUN python3 -m venv /opt/venv && \
+    /opt/venv/bin/pip install awscli && \
+    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
+    chmod +x kubectl && \
+    mv kubectl /usr/local/bin/
+
+# Install TypeScript globally
+RUN npm install -g typescript
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy package.json and package-lock.json
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy the rest of the application code
+COPY . .
+
+# Build the TypeScript code
+ARG BUILD_ENV=prod
+RUN npm run build:$BUILD_ENV
+
+# Verify that the build output exists
+RUN ls -la /app/dist
+
+# Expose the application port
+EXPOSE 8080
+
+# Start Docker daemon and Node.js application
+CMD ["sh", "-c", "dockerd-entrypoint.sh & sleep 5 && node ./dist/server.js"]
+

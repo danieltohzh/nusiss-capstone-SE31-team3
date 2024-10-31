@@ -1,0 +1,65 @@
+/* For NavBar (Start) */
+.navbar {
+  padding: 1rem 0; /* Adjust the padding as needed */
+}
+
+.navbar-nav .nav-item .nav-link:hover {
+  color: black; 
+  background-color: #ffffff; 
+
+}
+
+.navbar-nav .nav-link {
+  margin-right: 2rem; /* Add spacing between nav items */
+  margin-left: 2rem; /* Add spacing between nav items */
+}
+
+.navbar-brand img {
+  margin-left: 100px; 
+}
+
+.navbar .d-flex.align-items-center {
+  margin-right: 100px;
+}
+
+.btn-link {
+  margin-right: 100px; 
+}
+
+/* For NavBar (End) */
+
+
+/* For Home Page Styling (Start) */
+.inline-centered-container {
+  text-align: center; 
+  padding-top: 90px;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 100%;
+}
+
+.inline-centered-image {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 100%;
+  height: auto;
+}
+/* For Home Page Styling (End) */
+
+/* For Login Page Styling (Start) */
+.inline-container {
+  padding-top: 20px;
+  margin-left: 300px;
+
+}
+/* For Login Page Styling (End) */
+
+.form-top-padding {
+  padding-top: 10px;
+}
+
+.form-align-text-right {
+  align-content: right;
+}
+

@@ -1,0 +1,183 @@
+0 Utility Queries
+
+// 001 Return all nodes and relationships
+MATCH (n)
+OPTIONAL MATCH (n)-[r]->(m)
+RETURN n, r, m;
+
+// 002 Delete all nodes except certain labels
+MATCH (n)
+WHERE NOT ANY(label IN labels(n) WHERE label IN ['User'])
+DETACH DELETE n;
+
+// 003 Fetch specific node together with all its relationships
+MATCH (p:Person {name:'Example'})-[r]-(connectedNodes)
+RETURN p, r, connectedNodes;
+
+//004 Create User
+WITH 'Daniel Toh' as name, 
+'superplatonism@gmail.com' as email, 'superplatonism@gmail.com' as identifier, 'https://media.licdn.com/dms/image/C5103AQFqF6o1viJLJA/profile-displayphoto-shrink_200_200/0/1575003128243?e=2147483647&v=beta&t=0x7-DQIY5BdWmnalb4iQYGhoZUL79OlIcgSnS-79EEw' as picture 
+MERGE (p:User {email: email, identifier: identifier})
+ON CREATE SET p.createdAt = datetime(), p.updatedAt = datetime(),
+p.name = name, p.picture = picture  
+ON MATCH SET p.updatedAt = datetime(),
+p.name = name, p.picture = picture  
+RETURN p;
+
+// 005 Get Bounding-Boxes for list of categories for images in S3 folder
+MATCH (i:Image)<-[b:Labelled]-(u) 
+WHERE i.folderName = 'drone' AND b.isActive = true 
+AND b.category IN ['drone'] 
+RETURN i.fileName AS fileName, b.category AS category, b.x AS x, b.y AS y, b.width AS width, b.height AS height
+
+// 006 Get Active Categories for selected folder
+MATCH (i:Image {folderName: 'drone'})<-[b:Labelled {isActive: true}]-(u)
+WITH b.category AS category, COUNT(i) AS count  
+RETURN category, count
+
+// 007 Get Jobs
+MATCH (j:Job) 
+RETURN j.name AS name, j.CreatedOn AS createdOn, j.UpdatedOn AS updatedOn 
+ORDER BY j.updatedOn DESC
+
+// 008 Get Models in a Job
+MATCH (j:Job {name: 'JYTestJobName'})-[:CREATES]->(m:Model) 
+RETURN m.name AS name, m.CreatedOn AS createdOn, m.UpdatedOn AS updatedOn, 
+m.status AS status ORDER BY m.updatedOn DESC
+
+1 General Nodes & Relationships
+
+// 101 Node Create
+MERGE (p:Person {name: 'Example', age: 27})
+ON CREATE SET p.CreatedOn = datetime(), p.UpdatedOn = datetime()
+RETURN p;
+
+// 102 Node Read 
+MATCH (p:Person {name: 'Example'})
+RETURN p;
+
+// 103 Node Update
+MATCH (p:Person {name: 'Example'})
+SET p.age = 30, p.UpdatedOn = datetime()
+RETURN p;
+
+// 104 Node Delete
+MATCH (p:Person {name: 'Example'})
+DETACH DELETE p;
+
+// 105 Relationship Create
+MATCH (a:Person {name: 'Example'}), (b:Person {name: 'Example2'})
+MERGE (a)-[r:WORKS_WITH]->(b)
+ON CREATE SET r.since = '2023', r.CreatedOn = datetime(), r.UpdatedOn = datetime()
+RETURN a, b, r;
+
+// 106 Relationship Read
+MATCH (a:Person {name:'Example'})-[r:WORKS_WITH]->(b)
+RETURN a, b;
+
+// 107 Relationship Update
+MATCH (a:Person {name: 'Example'})-[r:WORKS_WITH]->(b:Person {name: 'Example2'})
+SET r.since = '2024', r.UpdatedOn = datetime()
+RETURN a, r, b;
+
+// 108 Relationship Delete
+MATCH (a:Person {name: 'Example'})-[r:WORKS_WITH]->(b:Person {name: 'Example2'})
+DELETE r;
+
+// 201a Insert Model Definition Option for nn.Conv2d
+WITH 
+'nn.Conv2d(in_channels={i1},out_channels={i2},kernel_size={i3},padding={i4},stride={i5})' as Code,
+['in_channels','out_channels','kernel_size','padding','stride'] as InputNames,
+['int','int','int','int','int'] as InputTypes,
+'Convolution 2D' as Name, 'Convolution' as Type, 
+['ReLU', 'ELU', 'LeakyReLU', 'Swish'] as NextAllowable
+MERGE (p:Option {Stage: 'NeuralNetwork', Method: 'Conv2d'})
+ON CREATE SET p.CreatedOn = datetime(), p.UpdatedOn = datetime(), 
+p.Name = Name, p.Type = Type, p.Code = Code, p.InputNames = InputNames, p.InputTypes = InputTypes, p.NextAllowable = NextAllowable
+ON MATCH SET p.UpdatedOn = datetime(),
+p.Name = Name, p.Type = Type, p.Code = Code, p.InputNames = InputNames, p.InputTypes = InputTypes, p.NextAllowable = NextAllowable
+RETURN p;
+
+// 201b Insert Model Definition Option for nn.ReLU
+WITH 
+'nn.ReLU()' as Code,
+[] as InputNames,
+[] as InputTypes,
+'Rectified Linear Unit' as Name, 'Activation' as Type, 
+['Conv2d','MaxPool2d','AvgPool2d'] as NextAllowable
+MERGE (p:Option {Stage: 'NeuralNetwork', Method: 'ReLU'})
+ON CREATE SET p.CreatedOn = datetime(), p.UpdatedOn = datetime(), 
+p.Name = Name, p.Type = Type, p.Code = Code, p.InputNames = InputNames, p.InputTypes = InputTypes, p.NextAllowable = NextAllowable
+ON MATCH SET p.UpdatedOn = datetime(),
+p.Name = Name, p.Type = Type, p.Code = Code, p.InputNames = InputNames, p.InputTypes = InputTypes, p.NextAllowable = NextAllowable
+RETURN p;
+
+// 201c Insert Model Definition Option for nn.ELU
+WITH 
+'nn.ELU()' as Code,
+[] as InputNames,
+[] as InputTypes,
+'Exponential Linear Unit' as Name, 'Activation' as Type,
+['Conv2d','MaxPool2d','AvgPool2d'] as NextAllowable
+MERGE (p:Option {Stage: 'NeuralNetwork', Method: 'ELU'})
+ON CREATE SET p.CreatedOn = datetime(), p.UpdatedOn = datetime(), 
+p.Name = Name, p.Type = Type, p.Code = Code, p.InputNames = InputNames, p.InputTypes = InputTypes, p.NextAllowable = NextAllowable
+ON MATCH SET p.UpdatedOn = datetime(),
+p.Name = Name, p.Type = Type, p.Code = Code, p.InputNames = InputNames, p.InputTypes = InputTypes, p.NextAllowable = NextAllowable
+RETURN p;
+
+// 201d Insert Model Definition Option for nn.LeakyReLU
+WITH 
+'nn.LeakyReLU()' as Code,
+[] as InputNames,
+[] as InputTypes,
+'Leaky Rectified Linear Unit' as Name, 'Activation' as Type,
+['Conv2d','MaxPool2d','AvgPool2d'] as NextAllowable
+MERGE (p:Option {Stage: 'NeuralNetwork', Method: 'LeakyReLU'})
+ON CREATE SET p.CreatedOn = datetime(), p.UpdatedOn = datetime(), 
+p.Name = Name, p.Type = Type, p.Code = Code, p.InputNames = InputNames, p.InputTypes = InputTypes, p.NextAllowable = NextAllowable
+ON MATCH SET p.UpdatedOn = datetime(),
+p.Name = Name, p.Type = Type, p.Code = Code, p.InputNames = InputNames, p.InputTypes = InputTypes, p.NextAllowable = NextAllowable
+RETURN p;
+
+// 201e Insert Model Definition Option for Swish
+WITH 
+'Swish()' as Code,
+[] as InputNames,
+[] as InputTypes,
+'Swish' as Name, 'Activation' as Type,
+['Conv2d','MaxPool2d','AvgPool2d'] as NextAllowable
+MERGE (p:Option {Stage: 'NeuralNetwork', Method: 'Swish'})
+ON CREATE SET p.CreatedOn = datetime(), p.UpdatedOn = datetime(), 
+p.Name = Name, p.Type = Type, p.Code = Code, p.InputNames = InputNames, p.InputTypes = InputTypes, p.NextAllowable = NextAllowable
+ON MATCH SET p.UpdatedOn = datetime(),
+p.Name = Name, p.Type = Type, p.Code = Code, p.InputNames = InputNames, p.InputTypes = InputTypes, p.NextAllowable = NextAllowable
+RETURN p;
+
+// 201f Insert Model Definition Option for nn.MaxPool2d
+WITH 
+'nn.MaxPool2d(kernel_size={i1},stride={i2},padding={i3})' as Code,
+['kernel_size','stride','padding'] as InputNames,
+['int','int','int'] as InputTypes,
+'Maximum Pooling 2D' as Name, 'Pooling' as Type, 
+['Conv2d'] as NextAllowable
+MERGE (p:Option {Stage: 'NeuralNetwork', Method: 'MaxPool2d'})
+ON CREATE SET p.CreatedOn = datetime(), p.UpdatedOn = datetime(), 
+p.Name = Name, p.Type = Type, p.Code = Code, p.InputNames = InputNames, p.InputTypes = InputTypes, p.NextAllowable = NextAllowable
+ON MATCH SET p.UpdatedOn = datetime(),
+p.Name = Name, p.Type = Type, p.Code = Code, p.InputNames = InputNames, p.InputTypes = InputTypes, p.NextAllowable = NextAllowable
+RETURN p;
+
+// 201g Insert Model Definition Option for nn.AvgPool2d
+WITH 
+'nn.AvgPool2d(kernel_size={i1},stride={i2},padding={i3})' as Code,
+['kernel_size','stride','padding'] as InputNames,
+['int','int','int'] as InputTypes,
+'Average Pooling 2D' as Name, 'Pooling' as Type, 
+['Conv2d'] as NextAllowable
+MERGE (p:Option {Stage: 'NeuralNetwork', Method: 'AvgPool2d'})
+ON CREATE SET p.CreatedOn = datetime(), p.UpdatedOn = datetime(), 
+p.Name = Name, p.Type = Type, p.Code = Code, p.InputNames = InputNames, p.InputTypes = InputTypes, p.NextAllowable = NextAllowable
+ON MATCH SET p.UpdatedOn = datetime(),
+p.Name = Name, p.Type = Type, p.Code = Code, p.InputNames = InputNames, p.InputTypes = InputTypes, p.NextAllowable = NextAllowable
+RETURN p;

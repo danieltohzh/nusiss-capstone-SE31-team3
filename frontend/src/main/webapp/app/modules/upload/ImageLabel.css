@@ -1,0 +1,113 @@
+
+.folder-dropdown {
+  display: flex;
+  align-items: center;
+}
+
+.delete-folder-button {
+  margin-left: 10px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: red;
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.delete-folder-button:hover {
+  background-color: darkred;
+}
+
+  .pagination {
+    margin-bottom: 10px;
+  }
+  
+  .pagination-button {
+    margin: 0 5px;
+    padding: 5px 10px;
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+    cursor: pointer;
+  }
+  
+  .pagination-button.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+  }
+
+.image-list-item {
+  position: relative;
+  display: inline-block;
+}
+  
+.delete-image-button {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: red;
+  color: white;
+  text-align: center;
+  line-height: 20px;
+  cursor: pointer;
+  z-index: 10;
+}
+
+
+.bounding-box {
+    position: absolute;
+    border: 5px dashed #04bd3b; /* Dashed border */
+    pointer-events: none; /* Allow clicks to pass through */
+}
+
+.bounding-box-info {
+    position: relative;
+}
+
+.bounding-box-details {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    /* background-color: #02d140; */
+    color: #fff;
+    padding: 5px;
+    white-space: nowrap;
+    z-index: 1;
+}
+
+.bounding-box-info:hover .bounding-box-details {
+    display: block;
+}
+.bounding-box-info:hover {
+    z-index: 2;
+}
+
+.bounding-box-delete {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    transform: translateY(-50%);
+    /* background-color: #02d140; */
+    color: #000000;
+    /* padding: 5px; */
+    white-space: nowrap;
+    z-index: 2;
+}
+
+.bounding-box-info:hover .bounding-box-delete {
+    display: inline;
+}
+
+
+

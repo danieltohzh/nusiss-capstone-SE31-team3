@@ -1,0 +1,38 @@
+# replace region, 123456789012, sample-nodejs-app, my-bucket-name, and my-distribution-id 
+# with your actual values
+
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 12
+    commands:
+      - echo Installing source NPM dependencies...
+      - cd frontend && npm install
+      - cd ..
+      # AWS CLI
+      - echo Installing AWS CLI...
+      - curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+      - unzip awscliv2.zip
+      - sudo ./aws/install
+      - aws --version
+  pre_build:
+    commands:
+      - echo No pre-build steps...
+  build:
+    commands:
+      # FRONTEND: build
+      - echo Building the React app...
+      - export BUILD_ENV=prod
+      - cd frontend && npm run build:prod
+  post_build:
+    commands:
+      # FRONTEND: S3 and CloudFront
+      - echo Pushing the React app to S3 and invalidating CloudFront cache...
+      - aws s3 sync build/ s3://dsai-frontend
+      - aws cloudfront create-invalidation --distribution-id E1UHR20HN2JO91 --paths "/*"
+      #- aws s3 sync build/ s3://my-bucket-name
+      #- aws cloudfront create-invalidation --distribution-id my-distribution-id --paths "/*"
+      
+

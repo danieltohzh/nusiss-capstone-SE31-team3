@@ -1,0 +1,190 @@
+# replace region, 123456789012, sample-nodejs-app, my-bucket-name, and my-distribution-id 
+# with your actual values
+
+version: 0.2
+
+env:
+  secrets-manager:
+    SCA_Snyk_Token: "sca-snyk-token:sca-snyk-token"
+    SAST_SonarCloud_Token: "sast-sonarcloud-token:sast-sonarcloud-token"
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: latest
+    commands:
+      # upgrade nodejs runtime
+      - n install 20
+      - node --version
+      # Install Java Runtime Environment (JRE), for running OWASP Dependency Check
+      #- echo Installing Java...
+      #- yum install -y java-1.8.0-openjdk-devel
+      #- java -version
+      # fetch OWASP Dependency Check
+      #- echo Installing OWASP Dependency Check...
+      #- wget https://github.com/jeremylong/DependencyCheck/releases/download/v6.5.0/dependency-check-6.5.0-release.zip
+      #- unzip dependency-check-6.5.0-release.zip
+      #- rm dependency-check-6.5.0-release.zip
+      #
+      # Install Snyk CLI, for Snyk SCA
+      - echo Installing Snyk CLI...
+      - curl -L -o snyk "https://github.com/snyk/snyk/releases/latest/download/snyk-linux"
+      - chmod +x ./snyk
+      - mv ./snyk /usr/local/bin/
+      # Install SonarScanner, for SonarCloud SAST
+      - echo Installing Amazon Corretto 17...
+      - wget https://corretto.aws/downloads/latest/amazon-corretto-17-x64-linux-jdk.tar.gz
+      - tar -xvf amazon-corretto-17-x64-linux-jdk.tar.gz
+      - export JAVA_HOME=$(find . -type d -name "amazon-corretto-17*")
+      - export PATH=$JAVA_HOME/bin:$PATH
+      - java -version
+      - echo Installing SonarScanner...
+      - wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.6.2.2472.zip
+      - unzip sonar-scanner-cli-4.6.2.2472.zip
+      - rm sonar-scanner-cli-4.6.2.2472.zip
+      - export PATH=$PATH:$(pwd)/sonar-scanner-4.6.2.2472/bin
+      #
+      # BACKEND: dependencies installation
+      - echo Installing source NPM dependencies...
+      - cd backend && npm install
+      - cd ..
+      # AWS CLI
+      - echo Installing AWS CLI...
+      - curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+      - unzip awscliv2.zip
+      - sudo ./aws/install --update
+      - aws --version
+      #- amazon-linux-extras install docker -y
+      #- service docker start
+      #- usermod -a -G docker ec2-user
+      # BACKEND: kubectl and aws-iam-authenticator
+      - curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.18.9/2020-11-02/bin/linux/amd64/aws-iam-authenticator
+      - curl -sS -o kubectl https://amazon-eks.s3-us-west-2.amazonaws.com/1.14.6/2019-08-22/bin/linux/amd64/kubectl
+      - chmod +x ./kubectl ./aws-iam-authenticator
+      - export PATH=$PWD/:$PATH
+      #kubectl
+      - echo Installing kubectl...
+      - curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+      - chmod +x kubectl
+      - mv kubectl /usr/local/bin/
+      #kubeconfig
+      #- aws eks update-kubeconfig --region ap-southeast-1 --name issdsai
+      - echo Downloading kubeconfig...
+      - aws s3 cp s3://issdsai-kubeconfig/config $HOME/.kube/config
+      #eksctl
+      #- echo Installing eksctl...
+      #- curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+      #- mv /tmp/eksctl /usr/local/bin
+      #helm
+      #- echo Installing helm...
+      #- curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+  pre_build:
+    commands:
+      # run SCA: OWASP Dependency Check
+      #- echo Running OWASP Dependency Check...
+      # .\dependency-check\bin\dependency-check.bat --project "ISS DSAI backend SCA" --scan .\backend\ --out .\backend\ --format "ALL"
+      #- ./dependency-check/bin/dependency-check.sh --project "ISS DSAI backend SCA" --scan ./backend/ --out ./backend/ --format "ALL"
+      #
+      # Authenticate with Snyk
+      - echo Authenticating with Snyk...
+      #- snyk auth $SNYK_TOKEN
+      - snyk auth $SCA_Snyk_Token
+      # Run Snyk to check for dependency vulnerabilities.
+      # "snyk test" command will return a non-zero exit code 
+      # if it finds any vulnerabilities, which will cause the build to fail.
+      # Run SonarCloud to check for static source code quality issues.
+      - echo Running Snyk for SCA and SonarCloud for SAST...
+      - cd backend
+      ###- snyk test
+      #- sonar-scanner -Dsonar.projectKey=my_project -Dsonar.organization=my_organization -Dsonar.sources=. -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=my_token
+      - cd ..
+      - echo $JAVA_HOME
+      - echo $PATH
+      - which java
+      - ls $JAVA_HOME/bin
+      - >
+        sonar-scanner -Dsonar.projectKey=dtzh_issdsai 
+        -Dsonar.organization=dtzh -Dsonar.sources=. 
+        -Dsonar.host.url=https://sonarcloud.io 
+        -Dsonar.token=$SAST_SonarCloud_Token 
+        -Dsonar.sourceEncoding=UTF-8
+        -Dsonar.c.file.suffixes=-
+        -Dsonar.cpp.file.suffixes=-
+        -Dsonar.objc.file.suffixes=-
+        -Dsonar.exclusions=node_modules/**/*,backend/node_modules/**/*,backend/coverage/**/*,backend/.nyc_output/**/*
+      #- cd frontend && snyk test
+      #- cd ..
+      #
+      # BACKEND: ECR login
+      - echo Logging in to Amazon ECR...
+      #- aws ecr get-login-password --region region | docker login --username AWS --password-stdin 123456789012.dkr.ecr.region.amazonaws.com
+      - >
+        aws ecr get-login-password --region ap-southeast-1 | docker login 
+        --username AWS --password-stdin 
+        499969923602.dkr.ecr.ap-southeast-1.amazonaws.com/issdsai
+      #- $(aws ecr get-login --region ap-southeast-1 --no-include-email)
+      #- aws eks update-kubeconfig --name $EKS_CLUSTER_NAME
+      - echo Logging in to Amazon EKS...
+      - aws eks --region ap-southeast-1 update-kubeconfig --name issdsai
+      #- mkdir -p /root/.kube
+      #- cp ~/.kube/config /root/.kube/config
+      - echo Printing kubeconfig...
+      - cat $HOME/.kube/config
+      - kubectl get cm aws-auth -o yaml -n kube-system
+  build:
+    commands:
+      # BACKEND: unit test and build
+      - cd backend
+      - echo Unit Test started on `date`
+      - echo Running unit tests...
+      - npm test 
+      - echo Build started on `date`
+      - echo Building the Docker image...
+      - docker build -t iss-dsai-app --build-arg BUILD_ENV=prod .
+      - docker tag iss-dsai-app:latest 499969923602.dkr.ecr.ap-southeast-1.amazonaws.com/issdsai:latest
+      #- docker build -t $REPOSITORY_URI .
+      #- docker tag $REPOSITORY_URI:latest $REPOSITORY_NAME:latest
+      #- docker tag sample-nodejs-app:latest 123456789012.dkr.ecr.region.amazonaws.com/sample-nodejs-app:latest
+  post_build:
+    commands:
+      # BACKEND: ECR push and EKS deployment
+      - echo Build completed on `date`
+      - echo Pushing the Docker image...
+      #- docker push $REPOSITORY_URI:latest
+      - docker push 499969923602.dkr.ecr.ap-southeast-1.amazonaws.com/issdsai:latest
+      #- docker push 123456789012.dkr.ecr.region.amazonaws.com/sample-nodejs-app:latest
+      #- CREDENTIALS=$(aws sts assume-role --role-arn $EKS_KUBECTL_ROLE_ARN --role-session-name Case-User --duration-seconds 900)
+      #- echo $CREDENTIALS
+      - cd ..
+      - export AWS_ACCESS_KEY_ID="$(echo ${CREDENTIALS} | jq -r '.Credentials.AccessKeyId')"
+      - export AWS_SECRET_ACCESS_KEY="$(echo ${CREDENTIALS} | jq -r '.Credentials.SecretAccessKey')"
+      - export AWS_SESSION_TOKEN="$(echo ${CREDENTIALS} | jq -r '.Credentials.SessionToken')"
+      - export AWS_EXPIRATION=$(echo ${CREDENTIALS} | jq -r '.Credentials.Expiration')
+      #- 
+      #- eksctl create iamserviceaccount --cluster issdsai --namespace kube-system --name aws-load-balancer-controller --attach-policy-arn arn:aws:iam::499969923602:policy/AWSLoadBalancerControllerIAMPolicy --override-existing-serviceaccounts --approve
+      #- helm repo add eks https://aws.github.io/eks-charts
+      #- kubectl apply -k "github.com/kubernetes-sigs/aws-load-balancer-controller/config/crd"
+      #- helm upgrade -i aws-load-balancer-controller eks/aws-load-balancer-controller -n kube-system --set clusterName=issdsai --set serviceAccount.create=false --set serviceAccount.name=aws-load-balancer-controller
+      - echo Printing kubeconfig...
+      - cat $HOME/.kube/config
+      - kubectl get cm aws-auth -o yaml -n kube-system
+      - kubectl apply -f service.yaml
+      - kubectl apply -f deployment.yaml
+      - kubectl apply -f hpa.yaml
+      #- kubectl apply -f k8s-job.yaml
+      - kubectl rollout restart deployment nodejs-app
+      
+      #kubectl edit -n kube-system configmap/aws-auth
+      # use local machine to edit configmap/aws-auth 
+      # to bind codebuild service role for it to run kubectl commands
+
+      # kubectl get pods
+      # kubectl describe pod <pod-name> 
+      # kubectl logs <pod-name>
+      # kubectl delete pod <pod-name>
+      # kubectl exec -it <pod-name> -- <command>
+      # kubectl exec -it <pod-name> -- /bin/bash
+      
+artifacts:
+  files:
+    - /root/.kube/config      
